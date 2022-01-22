@@ -520,8 +520,10 @@ async def cb_handler(client: Client, query: CallbackQuery):
         )
     elif query.data == "manualfilter":
         buttons = [[
+            InlineKeyboardButton('Buttons', callback_data='auto_manual'),
+            InlineKeyboardButton('Fillings', callback_data='fillings')
+            ],[
             InlineKeyboardButton('« Back', callback_data='auto_manual'),
-            InlineKeyboardButton('Buttons »', callback_data='button')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await query.message.edit_text(
@@ -755,6 +757,17 @@ async def cb_handler(client: Client, query: CallbackQuery):
             disable_web_page_preview=True,
             reply_markup=reply_markup,
             parse_mode='html'
+        )
+    elif query.data == "fillings":
+        buttons = [[
+            InlineKeyboardButton('« Back', callback_data='manualfilter')
+        ]]
+        reply_markup = InlineKeyboardMarkup(buttons)
+        await query.message.edit_text(
+            text=Script.FILLINGS_TXT,
+            disable_web_page_preview=True,
+            reply_markup=reply_markup,
+            parse_mode='markdown'
         )
     elif query.data == "stats":
         buttons = [[
@@ -1039,30 +1052,75 @@ async def manual_filters(client, message, text=False):
                 try:
                     if fileid == "None":
                         if btn == "[]":
-                            await client.send_message(group_id, reply_text, disable_web_page_preview=True)
+                            await message.reply_text(
+                             reply_text.format(
+                                 first = message.from_user.first_name,
+                                 last = message.from_user.last_name,
+                                 fullname = message.from_user.first_name + " " + message.from_user.last_name,
+                                 username = None if not message.from_user.username else '@' + message.from_user.username,
+                                 mention = message.from_user.mention,
+                                 id = message.from_user.id,
+                                 dcid = message.from_user.dc_id,
+                                 chatname = message.chat.title,
+                                 query = name
+                             ),
+                             group_id,
+                             disable_web_page_preview=True,
+                             reply_to_message_id=reply_id
+                            )
                         else:
                             button = eval(btn)
-                            await client.send_message(
+                            await message.reply_text(
+                                reply_text.format(
+                                    first = message.from_user.first_name,
+                                    last = message.from_user.last_name,
+                                    fullname = message.from_user.first_name + " " + message.from_user.last_name,
+                                    username = None if not message.from_user.username else '@' + message.from_user.username,
+                                    mention = message.from_user.mention,
+                                    id = message.from_user.id,
+                                    dcid = message.from_user.dc_id,
+                                    chatname = message.chat.title,
+                                    query = name
+                                ),
                                 group_id,
-                                reply_text,
                                 disable_web_page_preview=True,
                                 reply_markup=InlineKeyboardMarkup(button),
-                                reply_to_message_id=reply_id
+                                reply_to_message_id = reply_id
                             )
                     elif btn == "[]":
-                        await client.send_cached_media(
+                        await message.send_cached_media(
                             group_id,
                             fileid,
-                            caption=reply_text or "",
-                            reply_to_message_id=reply_id
+                            caption=reply_text.format(
+                                first = message.from_user.first_name,
+                                last = message.from_user.last_name,
+                                fullname = message.from_user.first_name + " " + message.from_user.last_name,
+                                username = None if not message.from_user.username else '@' + message.from_user.username,
+                                mention = message.from_user.mention,
+                                id = message.from_user.id,
+                                dcid = message.from_user.dc_id,
+                                chatname = message.chat.title,
+                                query = name
+                            ) or "",
+                            reply_to_message_id = reply_id
                         )
                     else:
-                        button = eval(btn)
+                        button = eval(btn) 
                         await message.reply_cached_media(
                             fileid,
-                            caption=reply_text or "",
+                            caption=reply_text.format(
+                                first=message.from_user.first_name,
+                                last=message.from_user.last_name,
+                                fullname = message.from_user.first_name + " " + message.from_user.last_name,
+                                username = None if not message.from_user.username else '@' + message.from_user.username,
+                                mention = message.from_user.mention,
+                                id=message.from_user.id,
+                                dcid = message.from_user.dc_id,
+                                chatname = message.chat.title,
+                                query = name
+                            ) or "",
                             reply_markup=InlineKeyboardMarkup(button),
-                            reply_to_message_id=reply_id
+                            reply_to_message_id = reply_id
                         )
                 except Exception as e:
                     logger.exception(e)
